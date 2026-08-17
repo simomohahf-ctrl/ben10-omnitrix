@@ -136,7 +136,7 @@ var alien=ALIENS[Math.max(0,STATE.alienIndex)];
 var s=alien.size;
 player=new THREE.Group();
 var bodyMat=new THREE.MeshStandardMaterial({color:alien.color,roughness:0.5,metalness:0.3,emissive:alien.color,emissiveIntensity:0.15});
-var bodyGeo=new THREE.CapsuleGeometry(0.4*s,0.8*s,4,8);
+var bodyGeo=new THREE.CylinderGeometry(0.3*s,0.3*s,1.0*s,8);
 var body=new THREE.Mesh(bodyGeo,bodyMat);body.position.y=0.6*s;body.castShadow=true;player.add(body);
 var headGeo=new THREE.SphereGeometry(0.35*s,8,8);
 var head=new THREE.Mesh(headGeo,bodyMat);head.position.y=1.35*s;head.castShadow=true;player.add(head);
@@ -144,11 +144,11 @@ var eyeGeo=new THREE.SphereGeometry(0.08*s,4,4);
 var eyeMat=new THREE.MeshBasicMaterial({color:0xffff00});
 var eyeL=new THREE.Mesh(eyeGeo,eyeMat);eyeL.position.set(-0.12*s,1.4*s,0.25*s);player.add(eyeL);
 var eyeR=eyeL.clone();eyeR.position.x=0.12*s;player.add(eyeR);
-var armGeo=new THREE.CapsuleGeometry(0.12*s,0.5*s,4,6);
+var armGeo=new THREE.CylinderGeometry(0.3*s,0.3*s,1.0*s,8);
 if(alien.name==='FOUR ARMS'){
 for(var s2 of [-1,1]){for(var a of [0.3,-0.3]){var arm=new THREE.Mesh(armGeo,bodyMat);arm.position.set(s2*(0.45*s),0.7*s,0);arm.rotation.z=s2*(Math.PI/2+a);arm.castShadow=true;player.add(arm);}}
 }else{for(var s2 of [-1,1]){var arm=new THREE.Mesh(armGeo,bodyMat);arm.position.set(s2*(0.4*s),0.7*s,0);arm.rotation.z=s2*Math.PI/2.5;arm.castShadow=true;player.add(arm);}}
-var legGeo=new THREE.CapsuleGeometry(0.15*s,0.4*s,4,6);
+var legGeo=new THREE.CylinderGeometry(0.3*s,0.3*s,1.0*s,8);
 for(var s2 of [-1,1]){var leg=new THREE.Mesh(legGeo,bodyMat);leg.position.set(s2*0.2*s,0.2*s,0);leg.castShadow=true;player.add(leg);}
 var omniGeo=new THREE.CircleGeometry(0.15*s,8);
 var omniMat=new THREE.MeshBasicMaterial({color:0x00ff00,transparent:true,opacity:0.8});
