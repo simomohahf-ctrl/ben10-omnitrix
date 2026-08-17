@@ -5,448 +5,397 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#0a0a1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
 <title>BEN 10: OMNITRIX POWER</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
 html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Arial Black',sans-serif;touch-action:none}
-#game-canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 #loading{position:fixed;inset:0;z-index:1000;background:linear-gradient(135deg,#0a0a2a,#1a0a2a,#2a0a1a);display:flex;flex-direction:column;align-items:center;justify-content:center}
-#loading.hidden{display:none}
-.omnitrix-load{width:120px;height:120px;border-radius:50%;border:8px solid transparent;border-top-color:#00ff00;border-right-color:#00ccff;animation:spin 1s linear infinite;margin-bottom:20px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.load-text{font-size:18px;font-weight:900;background:linear-gradient(90deg,#00ff00,#00ccff,#00ffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px}
+#loading.hidden{display:none!important}
+.spin{width:100px;height:100px;border-radius:50%;border:6px solid transparent;border-top-color:#00ff00;border-right-color:#00ccff;animation:rot 1s linear infinite;margin-bottom:20px}
+@keyframes rot{to{transform:rotate(360deg)}}
 #start-screen{position:fixed;inset:0;z-index:900;background:radial-gradient(ellipse at center,#1a1a4a 0%,#0a0a1a 70%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px}
 #start-screen.hidden{display:none!important}
-.game-title{font-size:48px;font-weight:900;text-align:center;line-height:1.1;margin-bottom:6px;background:linear-gradient(135deg,#00ff00 0%,#00ccff 50%,#00ffff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:0 0 40px rgba(0,255,0,.3)}
-.game-sub{font-size:16px;color:#00ccff;letter-spacing:3px;margin-bottom:30px;font-weight:700}
-.start-btn{padding:16px 48px;border-radius:50px;border:3px solid #00ff00;background:rgba(0,255,0,.1);color:#fff;font-size:22px;font-weight:900;cursor:pointer;font-family:inherit;letter-spacing:1px;box-shadow:0 0 30px rgba(0,255,0,.3);transition:all .2s}
-.start-btn:active{transform:scale(.95);box-shadow:0 0 50px rgba(0,255,0,.5)}
-.alien-preview{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;justify-content:center;max-width:350px}
-.alien-icon{width:50px;height:50px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid #333;background:rgba(255,255,255,.05)}
-.how-to{font-size:12px;color:#888;text-align:center;line-height:1.6;max-width:280px;margin-top:16px}
-#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;padding:max(10px,env(safe-area-inset-top)) 14px 0;display:none}
+.title{font-size:clamp(36px,10vw,56px);font-weight:900;text-align:center;line-height:1.1;margin-bottom:4px;background:linear-gradient(135deg,#00ff00,#00ccff,#00ffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 30px rgba(0,255,0,.3))}
+.sub{font-size:14px;color:#00ccff;letter-spacing:3px;margin-bottom:20px;font-weight:700}
+.aliens-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;justify-content:center}
+.alien-card{width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid #333;background:rgba(255,255,255,.05);position:relative}
+.alien-card::after{content:attr(data-name);position:absolute;bottom:-16px;font-size:8px;color:#888;white-space:nowrap;font-family:sans-serif}
+.play-btn{padding:16px 56px;border-radius:50px;border:3px solid #00ff00;background:rgba(0,255,0,.1);color:#fff;font-size:24px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 0 30px rgba(0,255,0,.4);transition:all .15s;margin-top:24px}
+.play-btn:active{transform:scale(.93)}
+.howto{font-size:11px;color:#666;text-align:center;line-height:1.6;margin-top:20px;max-width:260px;font-family:sans-serif}
+#hud{position:fixed;top:0;left:0;right:0;z-index:100;pointer-events:none;padding:max(10px,env(safe-area-inset-top)) 12px 0;display:none}
 #hud.show{display:block}
-.hud-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.hp-container{width:140px;height:14px;background:rgba(0,0,0,.6);border-radius:7px;border:1px solid #333;overflow:hidden}
-.hp-fill{height:100%;width:100%;border-radius:6px;transition:width .3s,background .3s}
-.score-display{font-size:20px;font-weight:900;color:#fff;text-shadow:0 0 8px rgba(0,255,255,.5)}
-.wave-display{font-size:14px;font-weight:700;color:#ffcc00;text-shadow:0 0 6px rgba(255,204,0,.4)}
-.hud-aliens{display:flex;gap:6px;justify-content:center;margin-top:4px}
-.hud-alien{width:36px;height:36px;border-radius:10px;border:2px solid #333;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s}
-.hud-alien.active{border-color:#00ff00;box-shadow:0 0 12px rgba(0,255,0,.4);transform:scale(1.15)}
-.hud-alien.locked{opacity:.3}
-#controls{position:fixed;bottom:0;left:0;right:0;z-index:100;height:200px;pointer-events:none;display:none}
+.hud-row{display:flex;justify-content:space-between;align-items:flex-start}
+.hp-wrap{flex:1;max-width:130px}
+.hp-bg{width:100%;height:12px;background:rgba(0,0,0,.6);border-radius:6px;border:1px solid #333;overflow:hidden}
+.hp-bar{height:100%;border-radius:5px;transition:width .2s}
+.hp-txt{font-size:9px;color:#888;margin-top:2px;font-family:sans-serif}
+.hud-center{text-align:center;flex:1}
+.wave-txt{font-size:13px;font-weight:700;color:#ffcc00;text-shadow:0 0 6px rgba(255,204,0,.5)}
+.score-txt{font-size:22px;font-weight:900;color:#fff;text-shadow:0 0 8px rgba(0,255,255,.4)}
+.hud-right{text-align:right;flex:1}
+.alien-txt{font-size:9px;color:#888}
+.alien-name{font-size:15px;font-weight:900}
+.alien-strip{display:flex;gap:4px;justify-content:center;margin-top:6px}
+.strip-item{width:32px;height:32px;border-radius:8px;border:2px solid #333;display:flex;align-items:center;justify-content:center;font-size:14px;background:rgba(0,0,0,.5)}
+.strip-item.active{transform:scale(1.2);box-shadow:0 0 10px currentColor}
+.strip-item.locked{opacity:.25}
+#controls{position:fixed;bottom:0;left:0;right:0;z-index:100;pointer-events:none;display:none}
 #controls.show{display:block}
-.joystick-base{position:absolute;bottom:30px;left:30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);pointer-events:auto}
-.joystick-knob{position:absolute;width:50px;height:50px;border-radius:50%;background:rgba(0,255,0,.3);border:2px solid #00ff00;left:35px;top:35px;transition:transform .05s;box-shadow:0 0 12px rgba(0,255,0,.3)}
-.action-buttons{position:absolute;bottom:30px;right:30px;display:flex;flex-direction:column;gap:12px;align-items:center;pointer-events:auto}
-.omnitrix-btn{width:80px;height:80px;border-radius:50%;border:3px solid #00ff00;background:radial-gradient(circle,#001a00,#000);color:#00ff00;font-size:32px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;box-shadow:0 0 20px rgba(0,255,0,.3);transition:all .15s}
-.omnitrix-btn:active{transform:scale(.9);box-shadow:0 0 40px rgba(0,255,0,.6)}
-.attack-btn{width:64px;height:64px;border-radius:50%;border:2px solid #ff4444;background:rgba(255,68,68,.2);color:#fff;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;box-shadow:0 0 12px rgba(255,68,68,.3)}
-.attack-btn:active{transform:scale(.88);background:rgba(255,68,68,.4)}
-.jump-btn{width:56px;height:56px;border-radius:50%;border:2px solid #4488ff;background:rgba(68,136,255,.2);color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
-.jump-btn:active{transform:scale(.88)}
-#transform-flash{position:fixed;inset:0;z-index:800;background:radial-gradient(circle,rgba(0,255,0,.8),rgba(0,200,255,.4),transparent);display:none;pointer-events:none}
-#transform-flash.show{display:block;animation:flashOut .8s ease forwards}
-@keyframes flashOut{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
-.alien-name-popup{position:fixed;top:35%;left:50%;transform:translateX(-50%);z-index:850;font-size:28px;font-weight:900;text-shadow:0 0 20px currentColor;opacity:0;transition:all .3s;pointer-events:none;text-align:center}
-.alien-name-popup.show{opacity:1;top:30%}
-.alien-name-popup .sub{font-size:14px;opacity:.7;letter-spacing:2px}
-#game-over{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.85);display:none;flex-direction:column;align-items:center;justify-content:center}
-#game-over.show{display:flex}
-.go-title{font-size:42px;font-weight:900;color:#ff3333;margin-bottom:16px;text-shadow:0 0 20px rgba(255,51,51,.5)}
-.go-stats{font-size:16px;color:#aaa;margin-bottom:24px;text-align:center;line-height:2}
-.go-retry{padding:14px 40px;border-radius:50px;border:3px solid #00ff00;background:rgba(0,255,0,.1);color:#fff;font-size:18px;font-weight:900;cursor:pointer;font-family:inherit}
-.go-retry:active{transform:scale(.95)}
-#wave-banner{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);z-index:700;font-size:36px;font-weight:900;color:#ffcc00;text-shadow:0 0 20px rgba(255,204,0,.6);opacity:0;pointer-events:none;text-align:center;transition:opacity .5s}
+.joy{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));left:24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);pointer-events:auto;touch-action:none}
+.joy-knob{position:absolute;width:44px;height:44px;border-radius:50%;background:rgba(0,255,0,.25);border:2px solid #00ff00;left:33px;top:33px;box-shadow:0 0 10px rgba(0,255,0,.3);transition:transform .05s}
+.btns{position:absolute;bottom:max(24px,env(safe-area-inset-bottom));right:24px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
+.btn-omni{width:72px;height:72px;border-radius:50%;border:3px solid #00ff00;background:radial-gradient(circle,#001a00,#000);color:#00ff00;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;box-shadow:0 0 18px rgba(0,255,0,.4);transition:all .1s}
+.btn-omni:active{transform:scale(.88)}
+.btn-atk{width:58px;height:58px;border-radius:50%;border:2px solid #ff4444;background:rgba(255,68,68,.15);color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.btn-atk:active{transform:scale(.85)}
+.btn-jmp{width:50px;height:50px;border-radius:50%;border:2px solid #4488ff;background:rgba(68,136,255,.15);color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.btn-jmp:active{transform:scale(.85)}
+#flash{position:fixed;inset:0;z-index:800;pointer-events:none;display:none}
+#flash.show{display:block;animation:flashAnim .6s ease forwards}
+@keyframes flashAnim{0%{opacity:0;background:radial-gradient(circle,rgba(0,255,0,.9),transparent)}30%{opacity:1}100%{opacity:0}}
+#popup{position:fixed;top:32%;left:50%;transform:translateX(-50%);z-index:850;font-size:26px;font-weight:900;text-shadow:0 0 20px currentColor;opacity:0;pointer-events:none;text-align:center;transition:all .25s}
+#popup.show{opacity:1;top:28%}
+#popup .ability{font-size:12px;opacity:.6;letter-spacing:2px}
+#wave-banner{position:fixed;top:38%;left:50%;transform:translate(-50%,-50%);z-index:700;font-size:32px;font-weight:900;color:#ffcc00;text-shadow:0 0 20px rgba(255,204,0,.5);opacity:0;pointer-events:none;text-align:center;transition:opacity .4s}
 #wave-banner.show{opacity:1}
-#wave-banner .sub{font-size:16px;color:#aaa}
+#wave-banner .info{font-size:14px;color:#aaa;font-weight:400}
+#gameover{position:fixed;inset:0;z-index:950;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center}
+#gameover.show{display:flex}
+.go-title{font-size:38px;font-weight:900;color:#ff3333;margin-bottom:14px;text-shadow:0 0 20px rgba(255,51,51,.5)}
+.go-stats{font-size:14px;color:#aaa;margin-bottom:20px;text-align:center;line-height:1.8;font-family:sans-serif}
+.go-btn{padding:14px 44px;border-radius:50px;border:3px solid #00ff00;background:rgba(0,255,0,.1);color:#fff;font-size:18px;font-weight:900;cursor:pointer;font-family:inherit}
+.go-btn:active{transform:scale(.93)}
 </style>
 </head>
 <body>
-<canvas id="game-canvas"></canvas>
-<div id="loading"><div class="omnitrix-load"></div><div class="load-text">BEN 10 OMNITRIX</div></div>
+<canvas id="cv"></canvas>
+<div id="loading"><div class="spin"></div><div style="font-size:16px;font-weight:900;background:linear-gradient(90deg,#00ff00,#00ccff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:2px">BEN 10 OMNITRIX</div></div>
 <div id="start-screen">
-<div class="game-title">BEN 10<br>OMNITRIX POWER</div>
-<div class="game-sub">★ ALIEN FORCE ★</div>
-<div class="alien-preview"><div class="alien-icon" style="border-color:#00ccff">🧠</div><div class="alien-icon" style="border-color:#ff6600">🔥</div><div class="alien-icon" style="border-color:#ff0000">💪</div><div class="alien-icon" style="border-color:#0066ff">⚡</div><div class="alien-icon" style="border-color:#00ffaa">💎</div></div>
-<button class="start-btn" id="start-btn">▶ PLAY</button>
-<div class="how-to">التحكم: الجويستيك لتحرك، ⚔ للهجوم، 🛗 للقفز، 🟢 للتحويل<br>قاتل موجات الأعداء وابقى حي!</div>
+<div class="title">BEN 10<br>OMNITRIX POWER</div>
+<div class="sub">★ ALIEN FORCE ★</div>
+<div class="aliens-row">
+<div class="alien-card" style="border-color:#ff6600" data-name="HEATBLAST">🔥</div>
+<div class="alien-card" style="border-color:#ff0000" data-name="FOUR ARMS">💪</div>
+<div class="alien-card" style="border-color:#0066ff" data-name="XLR8">⚡</div>
+<div class="alien-card" style="border-color:#00ffaa" data-name="DIAMONDHEAD">💎</div>
+<div class="alien-card" style="border-color:#00ccff" data-name="GREY MATTER">🧠</div>
 </div>
-<div id="hud"><div class="hud-top"><div><div class="hp-container"><div class="hp-fill" id="hp-bar"></div></div><div style="font-size:11px;color:#aaa;margin-top:2px">HP</div></div><div style="text-align:center"><div class="wave-display" id="wave-text">WAVE 1</div><div class="score-display" id="score-text">0</div></div><div style="text-align:right"><div style="font-size:11px;color:#aaa">ALIEN</div><div id="current-alien" style="font-size:16px;font-weight:900;color:#00ff00">BEN</div></div></div><div class="hud-aliens" id="hud-aliens"></div></div>
-<div id="controls"><div class="joystick-base" id="joy-base"><div class="joystick-knob" id="joy-knob"></div></div><div class="action-buttons"><button class="omnitrix-btn" id="omni-btn">🟢</button><button class="attack-btn" id="attack-btn">⚔</button><button class="jump-btn" id="jump-btn">🛗</button></div></div>
-<div id="transform-flash"></div>
-<div class="alien-name-popup" id="alien-popup"></div>
+<button class="play-btn" id="play">▶ PLAY</button>
+<div class="howto">Joystick للتحرك ⚔ للهجوم 🟢 للتحويل<br>قاتل موجات الأعداء وابقى حيا!</div>
+</div>
+<div id="hud">
+<div class="hud-row">
+<div class="hp-wrap"><div class="hp-bg"><div class="hp-bar" id="hp"></div></div><div class="hp-txt">HP</div></div>
+<div class="hud-center"><div class="wave-txt" id="wave">WAVE 1</div><div class="score-txt" id="score">0</div></div>
+<div class="hud-right"><div class="alien-txt">ALIEN</div><div class="alien-name" id="anm" style="color:#44aa44">BEN</div></div>
+</div>
+<div class="alien-strip" id="strip"></div>
+</div>
+<div id="controls">
+<div class="joy" id="joy"><div class="joy-knob" id="knob"></div></div>
+<div class="btns">
+<div class="btn-omni" id="bomni">🟢</div>
+<div class="btn-atk" id="batk">⚔</div>
+<div class="btn-jmp" id="bjmp">⬆</div>
+</div>
+</div>
+<div id="flash"></div>
+<div id="popup"></div>
 <div id="wave-banner"></div>
-<div id="game-over"><div class="go-title">GAME OVER</div><div class="go-stats" id="go-stats">Waves: 0 Score: 0</div><button class="go-retry" id="retry-btn">↻ RETRY</button></div>
+<div id="gameover">
+<div class="go-title">GAME OVER</div>
+<div class="go-stats" id="gostats"></div>
+<button class="go-btn" id="retry">↻ RETRY</button>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-var STATE={playing:false,gameOver:false,score:0,wave:1,hp:100,maxHp:100,alienIndex:-1,aliensUnlocked:1,transformCooldown:0,attackCooldown:0,alive:true,moveDir:{x:0,z:0},isJumping:false,velY:0,posY:0,gameTime:0};
-var ALIENS=[
-{name:'BEN',emoji:'🧑',color:0x44aa44,size:1.0,speed:5,hp:100,attackDmg:10,attackRange:3,attackCD:0.5,attackColor:0x44ff44,attackType:'melee',ability:'Punch'},
-{name:'GREY MATTER',emoji:'🧠',color:0x00ccff,size:0.5,speed:7,hp:60,attackDmg:8,attackRange:4,attackCD:0.3,attackColor:0x00ffff,attackType:'beam',ability:'Smart Beam'},
-{name:'HEATBLAST',emoji:'🔥',color:0xff6600,size:1.1,speed:4,hp:80,attackDmg:25,attackRange:8,attackCD:0.8,attackColor:0xff4400,attackType:'fireball',ability:'Fireball'},
-{name:'FOUR ARMS',emoji:'💪',color:0xff0000,size:1.4,speed:3,hp:140,attackDmg:40,attackRange:3.5,attackCD:1.0,attackColor:0xff3333,attackType:'melee',ability:'Quadruple Smash'},
-{name:'XLR8',emoji:'⚡',color:0x0066ff,size:0.9,speed:10,hp:70,attackDmg:15,attackRange:5,attackCD:0.25,attackColor:0x00aaff,attackType:'dash',ability:'Dash Strike'},
-{name:'DIAMONDHEAD',emoji:'💎',color:0x00ffaa,size:1.0,speed:5,hp:90,attackDmg:20,attackRange:7,attackCD:0.6,attackColor:0x00ffcc,attackType:'crystal',ability:'Crystal Shards'}
-];
-var scene,camera,renderer,player,playerMesh,ground;
-var enemies=[],projectiles=[],particles=[];
-var clock=new THREE.Clock();
+// ===== AUDIO ENGINE (Web Audio API - procedural sounds) =====
+var AC=null;
+function audio(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}}return AC}
+function snd(freq,dur,type,vol){var a=audio();if(!a)return;var o=a.createOscillator();var g=a.createGain();o.type=type||'square';o.frequency.value=freq;g.gain.setValueAtTime(vol||0.15,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur)}
+function sndSweep(f1,f2,dur,type,vol){var a=audio();if(!a)return;var o=a.createOscillator();var g=a.createGain();o.type=type||'sawtooth';o.frequency.setValueAtTime(f1,a.currentTime);o.frequency.exponentialRampToValueAtTime(f2,a.currentTime+dur);g.gain.setValueAtTime(vol||0.15,a.currentTime);g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+dur);o.connect(g);g.connect(a.destination);o.start();o.stop(a.currentTime+dur)}
+function sndNoise(dur,vol){var a=audio();if(!a)return;var b=a.createBuffer(1,a.sampleRate*dur,a.sampleRate);var d=b.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);var s=a.createBufferSource();s.buffer=b;var g=a.createGain();g.gain.setValueAtTime(vol||0.2,a.currentTime);g.connect(a.destination);s.connect(g);s.start()}
 
-function initThree(){
-scene=new THREE.Scene();
-scene.fog=new THREE.FogExp2(0x0a0a2a,0.012);
-scene.background=new THREE.Color(0x0a0a2a);
-camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,200);
-camera.position.set(0,15,20);
-camera.lookAt(0,0,0);
-renderer=new THREE.WebGLRenderer({canvas:document.getElementById('game-canvas'),antialias:true});
-renderer.setSize(innerWidth,innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-var amb=new THREE.AmbientLight(0x404060,0.6);scene.add(amb);
-var sun=new THREE.DirectionalLight(0x8888ff,0.8);sun.position.set(20,40,20);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);scene.add(sun);
-var gGeo=new THREE.PlaneGeometry(100,100);
-var gMat=new THREE.MeshStandardMaterial({color:0x1a1a2a,roughness:0.9});
-ground=new THREE.Mesh(gGeo,gMat);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
-var grid=new THREE.GridHelper(100,50,0x333355,0x222244);grid.position.y=0.01;scene.add(grid);
-for(var i=0;i<40;i++){
-var h=4+Math.random()*16,w=3+Math.random()*4,d=3+Math.random()*4;
-var x=(Math.random()-0.5)*90,z=(Math.random()-0.5)*90;
-if(Math.abs(x)<12&&Math.abs(z)<12)continue;
-var bGeo=new THREE.BoxGeometry(w,h,d);
-var bMat=new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(0.6+Math.random()*0.1,0.3,0.15+Math.random()*0.1),roughness:0.8,metalness:0.2});
-var b=new THREE.Mesh(bGeo,bMat);b.position.set(x,h/2,z);b.castShadow=true;b.receiveShadow=true;scene.add(b);
-}
-for(var i=0;i<200;i++){
-var starGeo=new THREE.SphereGeometry(0.15,4,4);
-var starMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:Math.random()*0.8+0.2});
-var star=new THREE.Mesh(starGeo,starMat);
-star.position.set((Math.random()-0.5)*200,30+Math.random()*60,(Math.random()-0.5)*200);scene.add(star);
-}
+// ===== GAME STATE =====
+var S={playing:false,over:false,score:0,wave:1,hp:100,maxHp:100,alienIdx:-1,unlocked:1,atkCD:0,tfCD:0,gameT:0,mx:0,mz:0,jump:false,vy:0,py:0,shake:0};
+var ALIENS=[
+{n:'BEN',e:'🧑',c:0x44aa44,s:1.0,spd:5,hp:100,dmg:10,range:3.5,cd:0.4,ac:0x44ff44,type:'melee',ab:'Punch'},
+{n:'HEATBLAST',e:'🔥',c:0xff5500,s:1.05,spd:4.5,hp:80,dmg:28,range:9,cd:0.7,ac:0xff4400,type:'fireball',ab:'Fireball'},
+{n:'FOUR ARMS',e:'💪',c:0xdd2200,s:1.35,spd:3.5,hp:150,dmg:45,range:4,cd:0.9,ac:0xff3333,type:'melee',ab:'Smash'},
+{n:'XLR8',e:'⚡',c:0x0066ff,s:0.9,spd:9,hp:70,dmg:18,range:5,cd:0.22,ac:0x00aaff,type:'dash',ab:'Dash Strike'},
+{n:'DIAMONDHEAD',e:'💎',c:0x00ddaa,s:1.0,spd:5,hp:95,dmg:22,range:8,cd:0.5,ac:0x00ffcc,type:'crystal',ab:'Crystal Shards'},
+{n:'GREY MATTER',e:'🧠',c:0x00ccff,s:0.5,spd:7,hp:55,dmg:12,range:5,cd:0.3,ac:0x00ffff,type:'beam',ab:'Smart Beam'}
+];
+
+// ===== THREE.JS SETUP =====
+var scene,cam,renderer,player,clock=new THREE.Clock();
+var enemies=[],projs=[],fx=[];
+var matCache={};
+function getMat(color,emissive){var k=color+'_'+(emissive||0);if(!matCache[k])matCache[k]=new THREE.MeshStandardMaterial({color:color,roughness:0.5,metalness:0.3,emissive:emissive||color,emissiveIntensity:emissive?0.3:0.1});return matCache[k]}
+
+function init(){
+scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x080820,0.01);scene.background=new THREE.Color(0x080820);
+cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,200);cam.position.set(0,14,18);cam.lookAt(0,0,0);
+renderer=new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true,alpha:false});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+var amb=new THREE.AmbientLight(0x404060,0.5);scene.add(amb);
+var sun=new THREE.DirectionalLight(0x8888ff,0.9);sun.position.set(15,35,15);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-50;sun.shadow.camera.right=50;sun.shadow.camera.top=50;sun.shadow.camera.bottom=-50;scene.add(sun);
+var ground=new THREE.Mesh(new THREE.PlaneGeometry(120,120),new THREE.MeshStandardMaterial({color:0x111122,roughness:0.95}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+var grid=new THREE.GridHelper(120,60,0x222244,0x111122);grid.position.y=0.01;scene.add(grid);
+// Buildings
+for(var i=0;i<35;i++){var h=5+Math.random()*18,w=3+Math.random()*5,d=3+Math.random()*5;var x=(Math.random()-0.5)*100,z=(Math.random()-0.5)*100;if(Math.abs(x)<14&&Math.abs(z)<14)continue;var b=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(0.6+Math.random()*0.1,0.3,0.12+Math.random()*0.08),roughness:0.8}));b.position.set(x,h/2,z);b.castShadow=true;b.receiveShadow=true;scene.add(b);}
+// Stars
+for(var i=0;i<150;i++){var st=new THREE.Mesh(new THREE.SphereGeometry(0.12,4,4),new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:Math.random()*0.7+0.3}));st.position.set((Math.random()-0.5)*180,25+Math.random()*50,(Math.random()-0.5)*180);scene.add(st);}
+// Omnitrix glow on ground
+var glow=new THREE.Mesh(new THREE.RingGeometry(3,6,32),new THREE.MeshBasicMaterial({color:0x00ff00,transparent:true,opacity:0.15,side:THREE.DoubleSide}));glow.rotation.x=-Math.PI/2;glow.position.y=0.02;scene.add(glow);
 createPlayer();
 }
 
+// ===== ALIEN MODELS (detailed) =====
 function createPlayer(){
 if(player)scene.remove(player);
-var alien=ALIENS[Math.max(0,STATE.alienIndex)];
-var s=alien.size;
+var a=ALIENS[Math.max(0,S.alienIdx)];var s=a.s;
 player=new THREE.Group();
-var bodyMat=new THREE.MeshStandardMaterial({color:alien.color,roughness:0.5,metalness:0.3,emissive:alien.color,emissiveIntensity:0.15});
-var bodyGeo=new THREE.CylinderGeometry(0.3*s,0.3*s,1.0*s,8);
-var body=new THREE.Mesh(bodyGeo,bodyMat);body.position.y=0.6*s;body.castShadow=true;player.add(body);
-var headGeo=new THREE.SphereGeometry(0.35*s,8,8);
-var head=new THREE.Mesh(headGeo,bodyMat);head.position.y=1.35*s;head.castShadow=true;player.add(head);
-var eyeGeo=new THREE.SphereGeometry(0.08*s,4,4);
+var bodyMat=getMat(a.c,0x000000);
+var glowMat=new THREE.MeshBasicMaterial({color:a.c,transparent:true,opacity:0.3});
+// Body
+var body=new THREE.Mesh(new THREE.CylinderGeometry(0.35*s,0.3*s,0.9*s,8),bodyMat);body.position.y=0.55*s;body.castShadow=true;player.add(body);
+// Head
+var head=new THREE.Mesh(new THREE.SphereGeometry(0.32*s,8,8),bodyMat);head.position.y=1.15*s;head.castShadow=true;player.add(head);
+// Eyes
 var eyeMat=new THREE.MeshBasicMaterial({color:0xffff00});
-var eyeL=new THREE.Mesh(eyeGeo,eyeMat);eyeL.position.set(-0.12*s,1.4*s,0.25*s);player.add(eyeL);
-var eyeR=eyeL.clone();eyeR.position.x=0.12*s;player.add(eyeR);
-var armGeo=new THREE.CylinderGeometry(0.3*s,0.3*s,1.0*s,8);
-if(alien.name==='FOUR ARMS'){
-for(var s2 of [-1,1]){for(var a of [0.3,-0.3]){var arm=new THREE.Mesh(armGeo,bodyMat);arm.position.set(s2*(0.45*s),0.7*s,0);arm.rotation.z=s2*(Math.PI/2+a);arm.castShadow=true;player.add(arm);}}
-}else{for(var s2 of [-1,1]){var arm=new THREE.Mesh(armGeo,bodyMat);arm.position.set(s2*(0.4*s),0.7*s,0);arm.rotation.z=s2*Math.PI/2.5;arm.castShadow=true;player.add(arm);}}
-var legGeo=new THREE.CylinderGeometry(0.3*s,0.3*s,1.0*s,8);
-for(var s2 of [-1,1]){var leg=new THREE.Mesh(legGeo,bodyMat);leg.position.set(s2*0.2*s,0.2*s,0);leg.castShadow=true;player.add(leg);}
-var omniGeo=new THREE.CircleGeometry(0.15*s,8);
-var omniMat=new THREE.MeshBasicMaterial({color:0x00ff00,transparent:true,opacity:0.8});
-var omni=new THREE.Mesh(omniGeo,omniMat);omni.position.set(0,0.7*s,0.42*s);player.add(omni);
-if(alien.name==='HEATBLAST'){for(var i=0;i<8;i++){var fGeo=new THREE.SphereGeometry(0.1+Math.random()*0.1,4,4);var fMat=new THREE.MeshBasicMaterial({color:0xff4400,transparent:true,opacity:0.6});var f=new THREE.Mesh(fGeo,fMat);f.position.set((Math.random()-0.5)*0.6*s,0.6*s+Math.random()*0.8*s,(Math.random()-0.5)*0.6*s);player.add(f);}}
-if(alien.name==='DIAMONDHEAD'){for(var s2 of [-1,1]){var spGeo=new THREE.ConeGeometry(0.12*s,0.3*s,4);var sp=new THREE.Mesh(spGeo,bodyMat);sp.position.set(s2*0.4*s,1.1*s,0);player.add(sp);}}
-player.position.set(0,0,0);
-player.userData.alien=alien;
-scene.add(player);playerMesh=player;
+var eL=new THREE.Mesh(new THREE.SphereGeometry(0.07*s,6,6),eyeMat);eL.position.set(-0.1*s,1.18*s,0.22*s);player.add(eL);
+var eR=eL.clone();eR.position.x=0.1*s;player.add(eR);
+// Omnitrix symbol
+var omni=new THREE.Mesh(new THREE.CircleGeometry(0.14*s,12),new THREE.MeshBasicMaterial({color:0x00ff00,transparent:true,opacity:0.9}));omni.position.set(0,0.6*s,0.33*s);player.add(omni);
+
+// Alien-specific features
+if(a.n==='HEATBLAST'){
+// Fire head replacement
+head.material=new THREE.MeshStandardMaterial({color:0xff4400,emissive:0xff2200,emissiveIntensity:0.6,roughness:0.3});
+// Lava cracks (emissive body)
+body.material=new THREE.MeshStandardMaterial({color:0x882200,emissive:0xff3300,emissiveIntensity:0.25,roughness:0.4});
+// Fire particles on shoulders
+for(var i=0;i<6;i++){var f=new THREE.Mesh(new THREE.SphereGeometry(0.08+Math.random()*0.08,4,4),new THREE.MeshBasicMaterial({color:0xff6600,transparent:true,opacity:0.7}));f.position.set((Math.random()-0.5)*0.5*s,0.8*s+Math.random()*0.4*s,(Math.random()-0.5)*0.5*s);player.add(f);}
+// Rock hands
+for(var sd of[-1,1]){var hand=new THREE.Mesh(new THREE.SphereGeometry(0.15*s,6,6),new THREE.MeshStandardMaterial({color:0x553311,roughness:0.9}));hand.position.set(sd*0.4*s,0.4*s,0);player.add(hand);}
+}
+if(a.n==='FOUR ARMS'){
+// 4 arms!
+for(var sd of[-1,1]){for(var off of[0.35,-0.35]){var arm=new THREE.Mesh(new THREE.CylinderGeometry(0.1*s,0.12*s,0.65*s,6),bodyMat);arm.position.set(sd*0.45*s,0.6*s,off*0.1*s);arm.rotation.z=sd*1.4+off*0.3;arm.castShadow=true;player.add(arm);
+var fist=new THREE.Mesh(new THREE.SphereGeometry(0.14*s,6,6),bodyMat);fist.position.set(sd*0.75*s,0.35*s,off*0.2*s);player.add(fist);}}
+// Wider body
+body.scale.x=1.3;body.scale.z=1.1;
+// Legs bigger
+for(var sd of[-1,1]){var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.14*s,0.16*s,0.5*s,6),bodyMat);leg.position.set(sd*0.22*s,0.15*s,0);leg.castShadow=true;player.add(leg);}
+}
+if(a.n==='XLR8'){
+// Visor
+var visor=new THREE.Mesh(new THREE.BoxGeometry(0.4*s,0.08*s,0.15*s),new THREE.MeshBasicMaterial({color:0x00ffff,transparent:true,opacity:0.8}));visor.position.set(0,1.2*s,0.22*s);player.add(visor);
+// Lightning bolts on body
+for(var sd of[-1,1]){var bolt=new THREE.Mesh(new THREE.BoxGeometry(0.03*s,0.5*s,0.03*s),new THREE.MeshBasicMaterial({color:0x00ddff}));bolt.position.set(sd*0.15*s,0.6*s,0.25*s);player.add(bolt);}
+// Sleek helmet (no eyes visible)
+eL.visible=false;eR.visible=false;
+// Small arms
+for(var sd of[-1,1]){var arm=new THREE.Mesh(new THREE.CylinderGeometry(0.07*s,0.07*s,0.5*s,6),bodyMat);arm.position.set(sd*0.35*s,0.65*s,0);arm.rotation.z=sd*Math.PI/2.5;player.add(arm);}
+}
+if(a.n==='DIAMONDHEAD'){
+// Crystal body
+body.material=new THREE.MeshStandardMaterial({color:0x00ddaa,roughness:0.1,metalness:0.5,transparent:true,opacity:0.85,emissive:0x00aa88,emissiveIntensity:0.2});
+head.material=body.material;
+// Diamond spikes on shoulders
+for(var sd of[-1,1]){var sp=new THREE.Mesh(new THREE.ConeGeometry(0.2*s,0.4*s,6),body.material);sp.position.set(sd*0.4*s,1.0*s,0);sp.castShadow=true;player.add(sp);}
+// Crystal shard on head
+var shard=new THREE.Mesh(new THREE.ConeGeometry(0.15*s,0.35*s,6),body.material);shard.position.set(0,1.55*s,0);player.add(shard);
+// Sharp fingers
+for(var sd of[-1,1]){var claw=new THREE.Mesh(new THREE.ConeGeometry(0.06*s,0.2*s,4),body.material);claw.position.set(sd*0.45*s,0.3*s,0.05*s);claw.rotation.x=Math.PI/2;player.add(claw);}
+}
+if(a.n==='GREY MATTER'){
+// Big brain head
+head.geometry=new THREE.SphereGeometry(0.4*s,12,12);
+head.position.y=0.8*s;
+head.material=new THREE.MeshStandardMaterial({color:0x88aabb,roughness:0.3,emissive:0x224455,emissiveIntensity:0.15});
+// Brain texture bumps
+for(var i=0;i<8;i++){var bump=new THREE.Mesh(new THREE.SphereGeometry(0.08*s,4,4),head.material);bump.position.set((Math.random()-0.5)*0.5*s,0.85*s+Math.random()*0.2*s,(Math.random()-0.5)*0.4*s);player.add(bump);}
+// Big eyes
+eL.scale.setScalar(1.5);eR.scale.setScalar(1.5);eL.position.set(-0.12*s,0.78*s,0.3*s);eR.position.set(0.12*s,0.78*s,0.3*s);
+// Small body
+body.scale.set(0.7,0.7,0.7);
+}
+// Standard arms for aliens without custom
+if(a.n!=='FOUR ARMS'&&a.n!=='XLR8'){for(var sd of[-1,1]){var arm=new THREE.Mesh(new THREE.CylinderGeometry(0.08*s,0.08*s,0.55*s,6),bodyMat);arm.position.set(sd*0.35*s,0.65*s,0);arm.rotation.z=sd*Math.PI/2.5;arm.castShadow=true;player.add(arm);}}
+// Legs
+if(a.n!=='FOUR ARMS'){for(var sd of[-1,1]){var leg=new THREE.Mesh(new THREE.CylinderGeometry(0.1*s,0.1*s,0.45*s,6),bodyMat);leg.position.set(sd*0.18*s,0.12*s,0);leg.castShadow=true;player.add(leg);}}
+player.userData={alien:a};
+scene.add(player);
 }
 
+// ===== ENEMIES =====
 function spawnEnemy(){
-var drone=new THREE.Group();
-var dMat=new THREE.MeshStandardMaterial({color:0x880000,emissive:0x440000,emissiveIntensity:0.3,metalness:0.6,roughness:0.4});
-var body=new THREE.Mesh(new THREE.SphereGeometry(0.5,8,8),dMat);body.castShadow=true;drone.add(body);
-var eyeMat=new THREE.MeshBasicMaterial({color:0xff0000});
-var eye=new THREE.Mesh(new THREE.SphereGeometry(0.15,6,6),eyeMat);eye.position.z=0.4;drone.add(eye);
-for(var s2 of [-1,1]){var wMat=new THREE.MeshBasicMaterial({color:0x440000,transparent:true,opacity:0.5});var wing=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.05,0.3),wMat);wing.position.set(s2*0.6,0,0);drone.add(wing);}
-var angle=Math.random()*Math.PI*2;var dist=20+Math.random()*10;
-drone.position.set(Math.cos(angle)*dist,2+Math.random()*3,Math.sin(angle)*dist);
-drone.userData={hp:30+STATE.wave*5,speed:1.5+STATE.wave*0.1,dmat:dMat,attackTimer:2+Math.random()*2};
-scene.add(drone);enemies.push(drone);
+var type=STATE_waveEnemyType();
+var g=new THREE.Group();
+if(type==='drone'){
+var mat=new THREE.MeshStandardMaterial({color:0x882222,emissive:0x441111,emissiveIntensity:0.3,metalness:0.6,roughness:0.4});
+var b=new THREE.Mesh(new THREE.SphereGeometry(0.45,8,8),mat);b.castShadow=true;g.add(b);
+var eye=new THREE.Mesh(new THREE.SphereGeometry(0.13,6,6),new THREE.MeshBasicMaterial({color:0xff0000}));eye.position.z=0.35;g.add(eye);
+for(var sd of[-1,1]){var wing=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.04,0.25),new THREE.MeshBasicMaterial({color:0x330000,transparent:true,opacity:0.5}));wing.position.set(sd*0.55,0,0);g.add(wing);}
+g.userData={hp:25+S.wave*5,spd:1.5+S.wave*0.08,mat:mat,atkT:2+Math.random()*2,dmg:8+S.wave*2};
+}else if(type==='tank'){
+var mat=new THREE.MeshStandardMaterial({color:0x664400,emissive:0x331100,emissiveIntensity:0.2,metalness:0.7,roughness:0.3});
+var b=new THREE.Mesh(new THREE.BoxGeometry(0.9,0.7,0.9),mat);b.castShadow=true;g.add(b);
+var turret=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.2,0.4,6),mat);turret.position.y=0.5;g.add(turret);
+var eye=new THREE.Mesh(new THREE.SphereGeometry(0.1,6,6),new THREE.MeshBasicMaterial({color:0xff6600}));eye.position.set(0,0.1,0.4);g.add(eye);
+g.userData={hp:60+S.wave*10,spd:0.8,mat:mat,atkT:3,dmg:15+S.wave*2};
+}else{ // boss
+var mat=new THREE.MeshStandardMaterial({color:0x660066,emissive:0x440044,emissiveIntensity:0.4,metalness:0.5,roughness:0.3});
+var b=new THREE.Mesh(new THREE.OctahedronGeometry(1.2),mat);b.castShadow=true;g.add(b);
+for(var i=0;i<4;i++){var spike=new THREE.Mesh(new THREE.ConeGeometry(0.2,0.5,6),mat);spike.position.set(Math.cos(i*Math.PI/2)*0.8,Math.sin(i*Math.PI/2)*0.8+0.5,0);g.add(spike);}
+var eye=new THREE.Mesh(new THREE.SphereGeometry(0.2,6,6),new THREE.MeshBasicMaterial({color:0xff00ff}));eye.position.z=0.7;g.add(eye);
+g.userData={hp:150+S.wave*20,spd:1.2,mat:mat,atkT:1.5,dmg:20+S.wave*3,boss:true};
 }
-
+var angle=Math.random()*Math.PI*2,dist=18+Math.random()*8;
+g.position.set(Math.cos(angle)*dist,type==='tank'?1:type==='boss'?3:2+Math.random()*2,Math.sin(angle)*dist);
+scene.add(g);enemies.push(g);
+sndNoise(0.1,0.08);
+}
+function STATE_waveEnemyType(){
+if(S.wave%5===0)return'boss';
+if(S.wave>2&&Math.random()<0.3)return'tank';
+return'drone';
+}
 function spawnWave(){
-var count=3+Math.floor(STATE.wave*1.5);
-for(var i=0;i<count;i++){setTimeout(function(){if(STATE.playing)spawnEnemy()},i*500);}
-showWaveBanner('WAVE '+STATE.wave,count+' ENEMIES');
+var count=3+Math.floor(S.wave*1.3);
+if(S.wave%5===0)count=1;
+for(var i=0;i<count;i++){setTimeout(function(){if(S.playing)spawnEnemy()},i*400);}
+var banner=document.getElementById('wave-banner');
+banner.innerHTML=S.wave%5===0?'⚠ BOSS WAVE '+S.wave:'WAVE '+S.wave+'<div class="info">'+count+' enemies</div>';
+banner.classList.add('show');setTimeout(function(){banner.classList.remove('show')},1800);
+sndSweep(200,600,0.3,'sawtooth',0.12);
 }
 
-function showWaveBanner(title,sub){
-var b=document.getElementById('wave-banner');b.innerHTML=title+'<div class="sub">'+sub+'</div>';
-b.classList.add('show');setTimeout(function(){b.classList.remove('show')},2000);
-}
-
-function playerAttack(){
-if(STATE.attackCooldown>0)return;
-var alien=player.userData.alien;STATE.attackCooldown=alien.attackCD;
-if(alien.attackType==='melee'||alien.attackType==='dash'){
-var range=alien.attackRange;var dir=new THREE.Vector3();camera.getWorldDirection(dir);dir.y=0;dir.normalize();
-for(var idx=0;idx<enemies.length;idx++){
-var d=enemies[idx].position.clone().sub(player.position);d.y=0;
-if(d.length()<range){damageEnemy(idx,alien.attackDmg);enemies[idx].position.add(dir.clone().multiplyScalar(2));}
-}
-createSlashEffect(range);
-if(alien.attackType==='dash'){player.position.add(dir.multiplyScalar(4));}
+// ===== COMBAT =====
+function attack(){
+if(S.atkCD>0||!S.playing)return;
+var a=player.userData.alien;S.atkCD=a.cd;sndSweep(400,100,0.1,'square',0.1);
+if(a.type==='melee'||a.type==='dash'){
+var range=a.range;var dir=new THREE.Vector3();cam.getWorldDirection(dir);dir.y=0;dir.normalize();
+for(var i=0;i<enemies.length;i++){var d=enemies[i].position.clone().sub(player.position);d.y=0;if(d.length()<range){damageEnemy(i,a.dmg);enemies[i].position.add(dir.clone().multiplyScalar(2));}}
+// Slash ring
+var ring=new THREE.Mesh(new THREE.RingGeometry(range*0.4,range,16),new THREE.MeshBasicMaterial({color:a.ac,transparent:true,opacity:0.6,side:THREE.DoubleSide}));ring.position.copy(player.position);ring.position.y=0.8;ring.rotation.x=-Math.PI/2;scene.add(ring);fx.push({mesh:ring,life:0.3,maxLife:0.3,mat:ring.material});
+if(a.type==='dash'){player.position.add(dir.multiplyScalar(4));sndSweep(200,800,0.2,'sawtooth',0.15);}
 }else{
 var proj=new THREE.Group();
-var pMat=new THREE.MeshBasicMaterial({color:alien.attackColor,transparent:true,opacity:0.9});
-if(alien.attackType==='fireball'){var p=new THREE.Mesh(new THREE.SphereGeometry(0.3,8,8),pMat);proj.add(p);
-var trailGeo=new THREE.ConeGeometry(0.15,0.6,6);var trail=new THREE.Mesh(trailGeo,pMat);trail.rotation.x=Math.PI/2;trail.position.z=0.4;proj.add(trail);
-}else if(alien.attackType==='crystal'){var p=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),pMat);proj.add(p);
-}else{var p=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.2,1,6),pMat);p.rotation.x=Math.PI/2;proj.add(p);}
-var dir=new THREE.Vector3();camera.getWorldDirection(dir);dir.y=0;dir.normalize();
+var pMat=new THREE.MeshBasicMaterial({color:a.ac,transparent:true,opacity:0.9});
+if(a.type==='fireball'){var p=new THREE.Mesh(new THREE.SphereGeometry(0.35,8,8),pMat);proj.add(p);for(var i=0;i<3;i++){var t=new THREE.Mesh(new THREE.SphereGeometry(0.15,4,4),pMat);t.position.set((Math.random()-0.5)*0.3,Math.random()*0.4,0.3);proj.add(t);}}
+else if(a.type==='crystal'){var p=new THREE.Mesh(new THREE.OctahedronGeometry(0.3),pMat);proj.add(p);var p2=new THREE.Mesh(new THREE.OctahedronGeometry(0.2),pMat);p2.position.set(0.2,0.1,0.2);proj.add(p2);}
+else{var p=new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.15,1,6),pMat);p.rotation.x=Math.PI/2;proj.add(p);}
+var dir=new THREE.Vector3();cam.getWorldDirection(dir);dir.y=0;dir.normalize();
 proj.position.copy(player.position);proj.position.y=0.8;
-proj.userData={dir:dir,speed:15,dmg:alien.attackDmg,life:3,type:alien.attackType,color:alien.attackColor};
-scene.add(proj);projectiles.push(proj);
+proj.userData={dir:dir,spd:16,dmg:a.dmg,life:3,type:a.type};
+scene.add(proj);projs.push(proj);
+sndSweep(600,1200,0.15,'sawtooth',0.1);
 }
 }
-
-function createSlashEffect(range){
-var alien=player.userData.alien;var dir=new THREE.Vector3();camera.getWorldDirection(dir);dir.y=0;dir.normalize();
-var ringGeo=new THREE.RingGeometry(range*0.5,range,16);
-var ringMat=new THREE.MeshBasicMaterial({color:alien.attackColor,transparent:true,opacity:0.6,side:THREE.DoubleSide});
-var ring=new THREE.Mesh(ringGeo,ringMat);ring.position.copy(player.position);ring.position.y=0.8;ring.rotation.x=-Math.PI/2;
-scene.add(ring);particles.push({mesh:ring,life:0.3,maxLife:0.3,mat:ringMat});
-}
-
 function damageEnemy(idx,dmg){
 var e=enemies[idx];if(!e)return;
-e.userData.hp-=dmg;
-e.userData.dmat.emissive.setHex(0xff0000);
-setTimeout(function(){if(e.userData.dmat)e.userData.dmat.emissive.setHex(0x440000)},100);
+e.userData.hp-=dmg;e.userData.mat.emissive.setHex(0xff0000);
+setTimeout(function(){if(e.userData.mat)e.userData.mat.emissive.setHex(e.userData.boss?0x440044:0x441100)},80);
+snd(800,0.05,'square',0.08);
+S.shake=0.3;
 if(e.userData.hp<=0){
-createExplosion(e.position,0xff4400);scene.remove(e);enemies.splice(idx,1);
-STATE.score+=100*STATE.wave;updateHUD();
-if(enemies.length===0&&STATE.playing){
-STATE.wave++;setTimeout(function(){if(STATE.playing)spawnWave()},2000);
-if(STATE.wave%2===0&&STATE.aliensUnlocked<ALIENS.length){STATE.aliensUnlocked++;}
-}
-}
-}
-
-function createExplosion(pos,color){
-for(var i=0;i<12;i++){
-var pGeo=new THREE.SphereGeometry(0.1+Math.random()*0.2,4,4);
-var pMat=new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:0.8});
-var p=new THREE.Mesh(pGeo,pMat);p.position.copy(pos);p.position.y+=Math.random()*0.5;
-p.userData={vel:new THREE.Vector3((Math.random()-0.5)*8,Math.random()*6,(Math.random()-0.5)*8),life:0.8,maxLife:0.8,mat:pMat};
-scene.add(p);particles.push(p.userData);particles[particles.length-1].mesh=p;
-}
-}
-
-function updateEnemies(dt){
-for(var idx=0;idx<enemies.length;idx++){
-var e=enemies[idx];if(!e.userData)continue;
-var d=player.position.clone().sub(e.position);d.y=0;var dist=d.length();d.normalize();
-if(dist>3){e.position.add(d.multiplyScalar(e.userData.speed*dt));}
-e.position.y=2+Math.sin(STATE.gameTime*3+idx)*0.5;
-e.lookAt(player.position.x,e.position.y,player.position.z);
-e.userData.attackTimer-=dt;
-if(e.userData.attackTimer<=0&&dist<12){
-e.userData.attackTimer=2+Math.random();
-if(STATE.alive)takeDamage(8+STATE.wave*2);
-}
-}
-}
-
-function updateProjectiles(dt){
-for(var idx=projectiles.length-1;idx>=0;idx--){
-var p=projectiles[idx];p.position.add(p.userData.dir.clone().multiplyScalar(p.userData.speed*dt));p.userData.life-=dt;
-var hit=false;
-for(var eidx=0;eidx<enemies.length;eidx++){
-if(p.position.distanceTo(enemies[eidx].position)<1.0){
-damageEnemy(eidx,p.userData.dmg);
-if(p.userData.type==='fireball')createExplosion(p.position,0xff4400);
-hit=true;break;
-}
-}
-if(hit||p.userData.life<=0){scene.remove(p);projectiles.splice(idx,1);}
-}
-}
-
-function updateParticles(dt){
-for(var idx=particles.length-1;idx>=0;idx--){
-var p=particles[idx];if(!p.mesh){particles.splice(idx,1);continue;}
-p.life-=dt;
-if(p.vel){p.mesh.position.add(p.vel.clone().multiplyScalar(dt));p.vel.y-=9.8*dt;}
-if(p.mat)p.mat.opacity=p.life/p.maxLife;
-p.mesh.scale.setScalar(p.life/p.maxLife*1.2);
-if(p.life<=0){scene.remove(p.mesh);particles.splice(idx,1);}
-}
-}
-
-function takeDamage(dmg){
-STATE.hp-=dmg;if(STATE.hp<0)STATE.hp=0;updateHUD();
-if(STATE.hp<=0&&STATE.alive){gameOver();}
-}
-
-function transform(){
-if(STATE.transformCooldown>0)return;
-STATE.alienIndex++;
-if(STATE.alienIndex>=STATE.aliensUnlocked)STATE.alienIndex=-1;
-var alien=ALIENS[Math.max(0,STATE.alienIndex)];
-var flash=document.getElementById('transform-flash');
-flash.classList.remove('show');void flash.offsetWidth;flash.classList.add('show');
-setTimeout(function(){flash.classList.remove('show')},800);
-createPlayer();
-STATE.maxHp=alien.hp;
-if(STATE.alienIndex>=0)STATE.hp=STATE.maxHp;else{STATE.maxHp=100;STATE.hp=Math.min(STATE.hp,100);}
+explosion(e.position,e.userData.boss?0xff00ff:0xff4400);scene.remove(e);enemies.splice(idx,1);
+S.score+=e.userData.boss?500*S.wave:100*S.wave;sndNoise(0.2,0.15);sndSweep(400,50,0.3,'sawtooth',0.12);
 updateHUD();
-var popup=document.getElementById('alien-popup');
-popup.innerHTML=alien.name+'<div class="sub">'+(STATE.alienIndex>=0?alien.ability:'BASE FORM')+'</div>';
-popup.style.color='#'+alien.color.toString(16).padStart(6,'0');
-popup.classList.remove('show');void popup.offsetWidth;popup.classList.add('show');
-setTimeout(function(){popup.classList.remove('show')},1500);
-STATE.transformCooldown=1.0;
+if(enemies.length===0&&S.playing){S.wave++;S.unlocked=Math.min(ALIENS.length,1+Math.floor(S.wave/2));setTimeout(function(){if(S.playing)spawnWave()},1500);}
 }
-
+}
+function explosion(pos,color){
+for(var i=0;i<15;i++){var pMat=new THREE.MeshBasicMaterial({color:color,transparent:true,opacity:0.9});var p=new THREE.Mesh(new THREE.SphereGeometry(0.1+Math.random()*0.2,4,4),pMat);p.position.copy(pos);p.position.y+=Math.random()*0.5;p.userData={vel:new THREE.Vector3((Math.random()-0.5)*8,Math.random()*7,(Math.random()-0.5)*8),life:0.8,maxLife:0.8};scene.add(p);fx.push({mesh:p,vel:p.userData.vel,life:0.8,maxLife:0.8,mat:pMat});}
+}
+function takeDamage(d){
+S.hp-=d;if(S.hp<0)S.hp=0;S.shake=0.4;sndSweep(200,50,0.15,'sawtooth',0.15);updateHUD();
+if(S.hp<=0&&S.playing){S.playing=false;S.over=true;document.getElementById('gostats').innerHTML='Waves: '+S.wave+'<br>Score: '+S.score.toLocaleString()+'<br>Best Alien: '+ALIENS[Math.max(0,S.alienIdx)].n;document.getElementById('gameover').classList.add('show');sndSweep(400,50,0.8,'sawtooth',0.2);}
+}
+function transform(){
+if(S.tfCD>0||!S.playing)return;
+S.alienIdx++;if(S.alienIdx>=S.unlocked)S.alienIdx=-1;
+var a=ALIENS[Math.max(0,S.alienIdx)];
+var flash=document.getElementById('flash');flash.classList.remove('show');void flash.offsetWidth;flash.classList.add('show');setTimeout(function(){flash.classList.remove('show')},600);
+sndSweep(200,2000,0.4,'sawtooth',0.15);snd(800,0.3,'sine',0.1);
+createPlayer();S.maxHp=a.hp;if(S.alienIdx>=0)S.hp=S.maxHp;else{S.maxHp=100;S.hp=Math.min(S.hp,100);}updateHUD();
+var popup=document.getElementById('popup');popup.innerHTML=a.n+'<div class="ability">'+(S.alienIdx>=0?a.ab:'BASE FORM')+'</div>';popup.style.color='#'+a.c.toString(16).padStart(6,'0');popup.classList.remove('show');void popup.offsetWidth;popup.classList.add('show');setTimeout(function(){popup.classList.remove('show')},1400);
+S.tfCD=1.0;
+}
 function updateHUD(){
-var hpPct=STATE.hp/STATE.maxHp*100;
-var hpBar=document.getElementById('hp-bar');
-hpBar.style.width=hpPct+'%';
-hpBar.style.background=hpPct>50?'linear-gradient(90deg,#00ff00,#00cc44)':hpPct>25?'linear-gradient(90deg,#ffaa00,#ff8800)':'linear-gradient(90deg,#ff3333,#ff0000)';
-document.getElementById('score-text').textContent=STATE.score.toLocaleString();
-document.getElementById('wave-text').textContent='WAVE '+STATE.wave;
-var alien=ALIENS[Math.max(0,STATE.alienIndex)];
-var ca=document.getElementById('current-alien');ca.textContent=STATE.alienIndex>=0?alien.name:'BEN';
-ca.style.color='#'+alien.color.toString(16).padStart(6,'0');
-var ha=document.getElementById('hud-aliens');ha.innerHTML='';
-for(var i=0;i<ALIENS.length;i++){
-var a=ALIENS[i];var d=document.createElement('div');
-d.className='hud-alien'+(i===STATE.alienIndex?' active':'')+(i>=STATE.aliensUnlocked?' locked':'');
-d.textContent=a.emoji;
-if(i===STATE.alienIndex)d.style.borderColor='#'+a.color.toString(16).padStart(6,'0');
-ha.appendChild(d);
+var pct=S.hp/S.maxHp*100;var hp=document.getElementById('hp');hp.style.width=pct+'%';hp.style.background=pct>50?'#00ff44':pct>25?'#ffaa00':'#ff3333';
+document.getElementById('score').textContent=S.score.toLocaleString();document.getElementById('wave').textContent='WAVE '+S.wave;
+var a=ALIENS[Math.max(0,S.alienIdx)];var nm=document.getElementById('anm');nm.textContent=S.alienIdx>=0?a.n:'BEN';nm.style.color='#'+a.c.toString(16).padStart(6,'0');
+var strip=document.getElementById('strip');strip.innerHTML='';
+for(var i=0;i<ALIENS.length;i++){var d=document.createElement('div');d.className='strip-item'+(i===S.alienIdx?' active':'')+(i>=S.unlocked?' locked':'');d.textContent=ALIENS[i].e;d.style.color='#'+ALIENS[i].c.toString(16).padStart(6,'0');strip.appendChild(d);}
 }
+// ===== GAME LOOP =====
+function loop(){
+requestAnimationFrame(loop);
+var dt=Math.min(clock.getDelta(),0.05);S.gameT+=dt;
+if(!S.playing){if(renderer)renderer.render(scene,cam);return;}
+if(S.atkCD>0)S.atkCD-=dt;if(S.tfCD>0)S.tfCD-=dt;
+// Movement
+var a=player.userData.alien;
+if(S.mx||S.mz){var mag=Math.hypot(S.mx,S.mz);if(mag>0.1){var nx=S.mx/mag,nz=S.mz/mag;player.position.x+=nx*a.spd*dt;player.position.z+=nz*a.spd*dt;player.position.x=Math.max(-55,Math.min(55,player.position.x));player.position.z=Math.max(-55,Math.min(55,player.position.z));player.rotation.y=Math.atan2(S.mx,S.mz);}}
+// Jump
+if(S.jump){S.vy-=15*dt;S.py+=S.vy*dt;if(S.py<=0){S.py=0;S.jump=false;S.vy=0;}}player.position.y=S.py;
+// Camera
+var targetX=player.position.x+(S.mx*S.mx+S.mz*S.mz>0?S.mx*5:0);
+cam.position.x+=(player.position.x-cam.position.x)*0.08;cam.position.z+=(player.position.z+16-cam.position.z)*0.08;cam.position.y=12+S.shake*Math.sin(S.gameT*30);
+if(S.shake>0)S.shake-=dt*2;
+cam.lookAt(player.position.x,2,player.position.z);
+// Enemies
+for(var i=0;i<enemies.length;i++){var e=enemies[i];var d=player.position.clone().sub(e.position);d.y=0;var dist=d.length();d.normalize();
+if(dist>2.5)e.position.add(d.multiplyScalar(e.userData.spd*dt));
+var bob=Math.sin(S.gameT*3+i)*0.3;e.position.y=(e.userData.boss?3:2)+bob;e.lookAt(player.position.x,e.position.y,player.position.z);
+e.userData.atkT-=dt;if(e.userData.atkT<=0&&dist<10){e.userData.atkT=2+Math.random()*2;if(S.playing)takeDamage(e.userData.dmg);}
 }
-
-function gameLoop(){
-requestAnimationFrame(gameLoop);
-var dt=Math.min(clock.getDelta(),0.05);STATE.gameTime+=dt;
-if(!STATE.playing){if(renderer)renderer.render(scene,camera);return;}
-if(STATE.attackCooldown>0)STATE.attackCooldown-=dt;
-if(STATE.transformCooldown>0)STATE.transformCooldown-=dt;
-var alien=player.userData.alien;var speed=alien.speed;
-if(STATE.moveDir.x||STATE.moveDir.z){
-var mag=Math.sqrt(STATE.moveDir.x*STATE.moveDir.x+STATE.moveDir.z*STATE.moveDir.z);
-if(mag>0){var nx=STATE.moveDir.x/mag,nz=STATE.moveDir.z/mag;
-player.position.x+=nx*speed*dt;player.position.z+=nz*speed*dt;
-player.position.x=Math.max(-48,Math.min(48,player.position.x));
-player.position.z=Math.max(-48,Math.min(48,player.position.z));
-player.rotation.y=Math.atan2(STATE.moveDir.x,STATE.moveDir.z);}
+// Projectiles
+for(var i=projs.length-1;i>=0;i--){var p=projs[i];p.position.add(p.userData.dir.clone().multiplyScalar(p.userData.spd*dt));p.userData.life-=dt;p.rotation.x+=dt*5;p.rotation.y+=dt*3;var hit=false;
+for(var j=0;j<enemies.length;j++){if(p.position.distanceTo(enemies[j].position)<1.2){damageEnemy(j,p.userData.dmg);if(p.userData.type==='fireball')explosion(p.position,0xff4400);hit=true;break;}}
+if(hit||p.userData.life<=0){scene.remove(p);projs.splice(i,1);}}
+// FX
+for(var i=fx.length-1;i>=0;i--){var f=fx[i];f.life-=dt;if(f.vel){f.mesh.position.add(f.vel.clone().multiplyScalar(dt));f.vel.y-=10*dt;}if(f.mat)f.mat.opacity=f.life/f.maxLife;if(f.mesh.geometry&&f.mesh.geometry.type==='RingGeometry'){f.mesh.scale.setScalar(1+(1-f.life/f.maxLife)*0.5);}else{f.mesh.scale.setScalar(f.life/f.maxLife*1.3);}if(f.life<=0){scene.remove(f.mesh);fx.splice(i,1);}}
+// Player idle animation
+if(S.mx||S.mz){player.rotation.z=Math.sin(S.gameT*8)*0.05;}
+renderer.render(scene,cam);
 }
-if(STATE.isJumping){STATE.velY-=15*dt;STATE.posY+=STATE.velY*dt;if(STATE.posY<=0){STATE.posY=0;STATE.isJumping=false;STATE.velY=0;}}
-player.position.y=STATE.posY;
-camera.position.x+=(player.position.x-camera.position.x)*0.1;
-camera.position.z+=(player.position.z+15-camera.position.z)*0.1;camera.position.y=12;
-camera.lookAt(player.position.x,2,player.position.z);
-updateEnemies(dt);updateProjectiles(dt);updateParticles(dt);
-renderer.render(scene,camera);
-}
-
-function gameOver(){
-STATE.playing=false;STATE.alive=false;STATE.gameOver=true;
-document.getElementById('go-stats').innerHTML='Waves: '+STATE.wave+' Score: '+STATE.score.toLocaleString()+' Best: '+ALIENS[Math.max(0,STATE.alienIndex)].name;
-document.getElementById('game-over').classList.add('show');
-}
-
+// ===== START / RESTART =====
 function startGame(){
-STATE.playing=true;STATE.alive=true;STATE.gameOver=false;
-STATE.score=0;STATE.wave=1;STATE.hp=100;STATE.maxHp=100;
-STATE.alienIndex=-1;STATE.aliensUnlocked=1;STATE.posY=0;
+audio();S.playing=true;S.over=false;S.score=0;S.wave=1;S.hp=100;S.maxHp=100;S.alienIdx=-1;S.unlocked=1;S.py=0;
 for(var i=0;i<enemies.length;i++)scene.remove(enemies[i]);enemies=[];
-for(var i=0;i<projectiles.length;i++)scene.remove(projectiles[i]);projectiles=[];
-for(var i=0;i<particles.length;i++){if(particles[i].mesh)scene.remove(particles[i].mesh);}particles=[];
-if(player)player.position.set(0,0,0);
-createPlayer();updateHUD();
+for(var i=0;i<projs.length;i++)scene.remove(projs[i]);projs=[];
+for(var i=0;i<fx.length;i++){if(fx[i].mesh)scene.remove(fx[i].mesh);}fx=[];
+if(player)player.position.set(0,0,0);createPlayer();updateHUD();
 document.getElementById('start-screen').classList.add('hidden');
-document.getElementById('game-over').classList.remove('show');
-document.getElementById('hud').classList.add('show');
-document.getElementById('controls').classList.add('show');
-spawnWave();
+document.getElementById('gameover').classList.remove('show');
+document.getElementById('hud').classList.add('show');document.getElementById('controls').classList.add('show');spawnWave();
 }
-
-// ============ JOYSTICK ============
-var joyActive=false,joyId=null;
-var joyBase=document.getElementById('joy-base');
-var joyKnob=document.getElementById('joy-knob');
-
-function joyStart(e){
-e.preventDefault();var t=e.changedTouches?e.changedTouches[0]:e;
-joyActive=true;joyId=t.identifier||0;
-}
-function joyMove(e){
-e.preventDefault();if(!joyActive)return;
-var rect=joyBase.getBoundingClientRect();
-var cx,cy;
-if(e.touches){for(var i=0;i<e.touches.length;i++){if(e.touches[i].identifier===joyId){cx=e.touches[i].clientX;cy=e.touches[i].clientY;}}}
-else{cx=e.clientX;cy=e.clientY;}
-if(cx===undefined)return;
-var dx=cx-rect.left-rect.width/2;var dy=cy-rect.top-rect.height/2;
-var mag=Math.sqrt(dx*dx+dy*dy);var max=rect.width/2-20;
-if(mag>max){dx=dx/mag*max;dy=dy/mag*max;}
-joyKnob.style.transform='translate('+dx+'px,'+dy+'px)';
-STATE.moveDir.x=dx/max;STATE.moveDir.z=dy/max;
-}
-function joyEnd(e){e.preventDefault();joyActive=false;joyId=null;
-joyKnob.style.transform='translate(0,0)';STATE.moveDir={x:0,z:0};}
-
-joyBase.addEventListener('touchstart',joyStart,{passive:false});
-joyBase.addEventListener('touchmove',joyMove,{passive:false});
-joyBase.addEventListener('touchend',joyEnd,{passive:false});
-joyBase.addEventListener('mousedown',joyStart);
-document.addEventListener('mousemove',joyMove);
-document.addEventListener('mouseup',joyEnd);
-
-// ============ BUTTONS (pointer events work on touch+mouse) ============
-function bindBtn(id,fn){
-var el=document.getElementById(id);
-el.addEventListener('pointerdown',function(e){e.preventDefault();fn();},{passive:false});
-el.addEventListener('click',function(e){e.preventDefault();fn();});
-}
-bindBtn('omni-btn',function(){if(STATE.playing)transform();});
-bindBtn('attack-btn',function(){if(STATE.playing)playerAttack();});
-bindBtn('jump-btn',function(){if(STATE.playing&&!STATE.isJumping){STATE.isJumping=true;STATE.velY=6;}});
-
-// ============ KEYBOARD ============
-document.addEventListener('keydown',function(e){
-if(!STATE.playing)return;
-if(e.key===' ')transform();
-if(e.key==='f'||e.key==='F')playerAttack();
-if(e.key==='w'||e.key==='ArrowUp')STATE.moveDir.z=-1;
-if(e.key==='s'||e.key==='ArrowDown')STATE.moveDir.z=1;
-if(e.key==='a'||e.key==='ArrowLeft')STATE.moveDir.x=-1;
-if(e.key==='d'||e.key==='ArrowRight')STATE.moveDir.x=1;
-});
-document.addEventListener('keyup',function(e){
-if(e.key==='w'||e.key==='s'||e.key==='ArrowUp'||e.key==='ArrowDown')STATE.moveDir.z=0;
-if(e.key==='a'||e.key==='d'||e.key==='ArrowLeft'||e.key==='ArrowRight')STATE.moveDir.x=0;
-});
-
-// ============ START ============
-document.getElementById('start-btn').addEventListener('pointerdown',function(e){e.preventDefault();startGame();return false;},{passive:false});
-document.getElementById('start-btn').addEventListener('click',function(e){e.preventDefault();startGame();return false;});
-document.getElementById('retry-btn').addEventListener('pointerdown',function(e){e.preventDefault();startGame();return false;},{passive:false});
-document.getElementById('retry-btn').addEventListener('click',function(e){e.preventDefault();startGame();return false;});
-
-window.addEventListener('resize',function(){if(camera&&renderer){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}});
-
-// ============ INIT ============
-try{
-initThree();
-gameLoop();
-setTimeout(function(){document.getElementById('loading').classList.add('hidden');},500);
-}catch(err){
-document.getElementById('loading').innerHTML='<div style="color:#f00;text-align:center;padding:20px;font-size:14px">خطأ: '+err.message+'<br>أعد تحميل الصفحة</div>';
-}
+// ===== INPUT =====
+var joy=document.getElementById('joy'),knob=document.getElementById('knob'),joyOn=false,joyId=null;
+function jStart(e){e.preventDefault();var t=e.changedTouches?e.changedTouches[0]:e;joyOn=true;joyId=t.identifier||0;}
+function jMove(e){e.preventDefault();if(!joyOn)return;var rect=joy.getBoundingClientRect();var cx,cy;if(e.touches){for(var i=0;i<e.touches.length;i++){if(e.touches[i].identifier===joyId){cx=e.touches[i].clientX;cy=e.touches[i].clientY;}}}else{cx=e.clientX;cy=e.clientY;}if(cx===undefined)return;var dx=cx-rect.left-rect.width/2,dy=cy-rect.top-rect.height/2;var mag=Math.hypot(dx,dy);var max=rect.width/2-18;if(mag>max){dx=dx/mag*max;dy=dy/mag*max;}knob.style.transform='translate('+dx+'px,'+dy+'px)';S.mx=dx/max;S.mz=dy/max;}
+function jEnd(e){e.preventDefault();joyOn=false;joyId=null;knob.style.transform='translate(0,0)';S.mx=0;S.mz=0;}
+joy.addEventListener('touchstart',jStart,{passive:false});joy.addEventListener('touchmove',jMove,{passive:false});joy.addEventListener('touchend',jEnd,{passive:false});joy.addEventListener('mousedown',jStart);document.addEventListener('mousemove',jMove);document.addEventListener('mouseup',jEnd);
+function bind(id,fn){var el=document.getElementById(id);el.addEventListener('pointerdown',function(e){e.preventDefault();fn();},{passive:false});el.addEventListener('touchend',function(e){e.preventDefault();fn();},{passive:false});el.addEventListener('click',function(e){e.preventDefault();fn();});}
+bind('bomni',function(){if(S.playing)transform();});
+bind('batk',function(){if(S.playing)attack();});
+bind('bjmp',function(){if(S.playing&&!S.jump){S.jump=true;S.vy=6;sndSweep(300,600,0.1,'square',0.08);}});
+document.addEventListener('keydown',function(e){if(!S.playing)return;if(e.key===' '||e.key==='Enter')transform();if(e.key==='f'||e.key==='F')attack();if(e.key==='w'||e.key==='ArrowUp')S.mz=-1;if(e.key==='s'||e.key==='ArrowDown')S.mz=1;if(e.key==='a'||e.key==='ArrowLeft')S.mx=-1;if(e.key==='d'||e.key==='ArrowRight')S.mx=1;if(e.key==='ArrowUp'&&S.alienIdx<0)transform();});
+document.addEventListener('keyup',function(e){if(e.key==='w'||e.key==='s'||e.key==='ArrowUp'||e.key==='ArrowDown')S.mz=0;if(e.key==='a'||e.key==='d'||e.key==='ArrowLeft'||e.key==='ArrowRight')S.mx=0;});
+var pb=document.getElementById('play'),rb=document.getElementById('retry');
+function startBtn(e){e.preventDefault();e.stopPropagation();startGame();return false;}
+pb.addEventListener('pointerdown',startBtn,{passive:false});pb.addEventListener('click',startBtn);
+rb.addEventListener('pointerdown',startBtn,{passive:false});rb.addEventListener('click',startBtn);
+window.addEventListener('resize',function(){if(cam&&renderer){cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);}});
+// ===== INIT =====
+try{init();loop();setTimeout(function(){document.getElementById('loading').classList.add('hidden')},500);}catch(e){document.getElementById('loading').innerHTML='<div style="color:#f00;text-align:center;padding:20px;font-size:14px">خطأ: '+e.message+'</div>';}
 </script>
 </body>
 </html>
